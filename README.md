@@ -2,5 +2,5 @@
 
 ## Grandeur reselling app for sneakers and apparel
 
-To install apk debug version go to -> build/app/outputs/flutter-apk/app-debug.apk (if you don't have installed flutter go through adb)
+To install apk debug version go to -> build/app/outputs/flutter-apk/app-debug.apk (if you don't have installed flutter go through adb)<br>
 To view scripts go to lib
