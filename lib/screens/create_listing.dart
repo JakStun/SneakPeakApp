@@ -160,7 +160,8 @@ class _CreateListingState extends State<CreateListing> {
     final String userKey = LocalSettingsService.userKey;
 
     // After tests, create a listing
-    final uri = Uri.parse("http://80.211.202.178:8000/create-listing");
+    final uri = Uri.parse("http://80.211.202.178:8000/listings/v1/create-listing");
+    // final uri = Uri.parse("http://127.0.0.1:8000/listings/v1/create-listing");
     final request = http.MultipartRequest('POST', uri);
 
     // create fields for every data parameter:
@@ -172,7 +173,7 @@ class _CreateListingState extends State<CreateListing> {
     request.fields['size'] = size.toString();
     request.fields['item_condition'] = condition;
     request.fields['packaging'] = packaging;
-    request.fields['user_key'] = userKey; // replace with actual user key
+    request.headers['X-User-Nanoid'] = userKey; // replace with actual user key
 
     for (var imageFile in _images) {
       final fileStream = http.ByteStream(imageFile.openRead());

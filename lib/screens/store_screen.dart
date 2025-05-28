@@ -35,7 +35,8 @@ class _StoreScreenState extends State<StoreScreen> {
     final userNanoid = await UserKeyChecker.getCreateUserKey();
 
     try {
-      final uri = Uri.parse('http://80.211.202.178:8000/my-listings');
+      final uri = Uri.parse('http://80.211.202.178:8000/listings/v1/my-listings');
+      // final uri = Uri.parse('http://127.0.0.1:8000/listings/v1/my-listings');
       final response = await http.get(uri, headers: {
         'X-User-Nanoid': userNanoid,
       });
@@ -110,6 +111,9 @@ class _StoreScreenState extends State<StoreScreen> {
                             width: 80,
                             height: 80,
                             fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return const Icon(Icons.broken_image, size: 80, color: Colors.grey);
+                            },
                           )
                         : const Icon(Icons.image_not_supported, size: 80),
                     const SizedBox(width: 12),

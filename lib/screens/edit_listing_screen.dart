@@ -167,11 +167,12 @@ class _EditListingScreenState extends State<EditListingScreen> {
     }
 
     final String userKey = LocalSettingsService.userKey;
-    final uri = Uri.parse("http://80.211.202.178:8000/edit-listing");
+    final uri = Uri.parse("http://80.211.202.178:8000/listings/v1/edit-listing");
+    // final uri = Uri.parse("http://127.0.0.1:8000/listings/v1/edit-listing");
 
-    final request = http.MultipartRequest('PUT', uri);
+    final request = http.MultipartRequest('POST', uri);
 
-    request.fields['listing_id'] = widget.listingData["listing_id"]; // make sure this is passed
+    request.headers['X-Listing-id'] = widget.listingData["listing_id"]; // make sure this is passed
     request.fields['title'] = titleController.text;
     request.fields['price'] = priceController.text;
     request.fields['price_currency'] = currency;
@@ -180,10 +181,11 @@ class _EditListingScreenState extends State<EditListingScreen> {
     request.fields['size'] = size.toString();
     request.fields['item_condition'] = condition;
     request.fields['packaging'] = packaging;
-    request.fields['user_key'] = userKey;
+    request.headers['X-User-Nanoid'] = userKey;
 
     // For now convert back to relative path, can't save as url in server
     String baseUrl = "http://80.211.202.178:8000/user-image/";
+    // String baseUrl = "http://127.0.0.1:8000/user-image/";
     String toRelativePath(String url) {
       if (url.startsWith(baseUrl)) {
         final pathWithoutBase = url.substring(baseUrl.length); // "user_id/filename.jpg"

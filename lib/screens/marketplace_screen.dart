@@ -36,7 +36,8 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
     final userNanoid = await UserKeyChecker.getCreateUserKey();
 
     try {
-      final uri = Uri.parse('http://80.211.202.178:8000/my-listings');
+      final uri = Uri.parse('http://80.211.202.178:8000/listings/v1/my-listings');
+      // final uri = Uri.parse('http://127.0.0.1:8000/listings/v1/my-listings');
       final response = await http.get(uri, headers: {
         'X-User-Nanoid': userNanoid}
       );

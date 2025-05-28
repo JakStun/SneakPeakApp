@@ -59,7 +59,8 @@ class ListingDetailsScreen extends StatelessWidget {
               if (confirmed == true) {
                 final listingId = listing['listing_id'];
                 final userKey = await UserKeyChecker.getCreateUserKey(); // Make sure you store `user_key` in your listing map
-                final uri = Uri.parse('http://80.211.202.178:8000/delete-listing');
+                final uri = Uri.parse('http://80.211.202.178:8000/listings/v1/delete-listing');
+                // final uri = Uri.parse('http://127.0.0.1:8000/listings/v1/delete-listing');
 
                 final response = await http.delete(uri, headers: {
                   "X-User-Nanoid": userKey,
@@ -93,6 +94,14 @@ class ListingDetailsScreen extends StatelessWidget {
                       images[index],
                       fit: BoxFit.cover,
                       width: double.infinity,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          color: Colors.grey[300],
+                          height: 300,
+                          alignment: Alignment.center,
+                          child: const Icon(Icons.broken_image, size: 60, color: Colors.grey),
+                        );
+                      },
                     ),
                   );
                 },
