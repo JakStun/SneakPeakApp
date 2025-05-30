@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class BrandScreen extends StatefulWidget {
   const BrandScreen({super.key});
@@ -10,9 +11,11 @@ class BrandScreen extends StatefulWidget {
 class _BrandScreenState extends State<BrandScreen> {
   bool isDark = false;
   String? _pressedBrand;
-  final Set<String> favoriteBrands = {};
+  List<String> favoriteBrands = [];
+  bool _favoritesLoaded = false;
 
-  final List<Map<String, String>> brands = [
+  // Keep initial alphabetical order
+  final List<Map<String, String>> allBrands = [
     {'name': 'Adidas', 'logo': 'Adidas_logo.webp'},
     {'name': 'Air Jordan', 'logo': 'Air_Jordan_logo.webp'},
     {'name': 'Converse', 'logo': 'Converse_logo.webp'},
@@ -26,124 +29,142 @@ class _BrandScreenState extends State<BrandScreen> {
   ];
 
   @override
-  Widget build(BuildContext context) {
-    // THEME COLORS
-    final Color topBottomBarColor = isDark ? Colors.grey[850]! : const Color(0xFFE9DFCC);
-    final Color bodyBackgroundColor = isDark ? Colors.grey[900]! : const Color(0xFFF5EFE6);
-    final Color brandTextColor = isDark ? Colors.white : const Color(0xFF4E3E14);
-    final Color headerTextColor = isDark ? Colors.white : Colors.black;
-    final Color dividerColor = isDark ? Colors.grey[700]! : const Color(0xFF4E3E14);
+  void initState() {
+    super.initState();
+    _loadFavorites();
+  }
 
-    // SORTED BRANDS LIST
-    final sortedBrands = [...brands];
-    sortedBrands.sort((a, b) {
-      final aFav = favoriteBrands.contains(a['name']);
-      final bFav = favoriteBrands.contains(b['name']);
-      if (aFav && !bFav) return -1;
-      if (!aFav && bFav) return 1;
-      return 0;
+  Future<void> _loadFavorites() async {
+    final prefs = await SharedPreferences.getInstance();
+    final List<String>? saved = prefs.getStringList('favoriteBrands');
+    setState(() {
+      favoriteBrands = saved ?? [];
+      _favoritesLoaded = true; // Set to true when loaded
     });
+  }
 
-    return Scaffold(
-      backgroundColor: bodyBackgroundColor,
-      appBar: AppBar(
-        backgroundColor: topBottomBarColor,
-        elevation: 0,
-        centerTitle: true,
-        title: Text(
-          'BRANDS',
-          style: TextStyle(
-            color: headerTextColor,
-            fontWeight: FontWeight.bold,
-            fontSize: 34,
-          ),
+  Future<void> _saveFavorites() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList('favoriteBrands', favoriteBrands);
+  }
+
+  @override
+Widget build(BuildContext context) {
+  final Color topBottomBarColor = isDark ? Colors.grey[850]! : const Color(0xFFE9DFCC);
+  final Color bodyBackgroundColor = isDark ? Colors.grey[900]! : const Color(0xFFF5EFE6);
+  final Color brandTextColor = isDark ? const Color(0xFFdcc66e) : const Color(0xFF4E3E14);
+  final Color headerTextColor = isDark ? const Color(0xFFdcc66e) : Colors.black;
+  final Color dividerColor = isDark ? Colors.grey[700]! : const Color(0xFF4E3E14);
+
+  final favoriteBrandMaps = favoriteBrands
+      .map((fav) => allBrands.firstWhere((b) => b['name'] == fav, orElse: () => {}))
+      .where((b) => b.isNotEmpty)
+      .toList();
+
+  final nonFavoriteBrandMaps = allBrands
+      .where((b) => !favoriteBrands.contains(b['name']))
+      .toList()
+    ..sort((a, b) => a['name']!.compareTo(b['name']!));
+
+  final displayBrands = [...favoriteBrandMaps, ...nonFavoriteBrandMaps];
+
+  return Scaffold(
+    backgroundColor: bodyBackgroundColor,
+    appBar: AppBar(
+      backgroundColor: topBottomBarColor,
+      elevation: 0,
+      centerTitle: true,
+      title: Text(
+        'BRANDS',
+        style: TextStyle(
+          color: headerTextColor,
+          fontWeight: FontWeight.bold,
+          fontSize: 34,
         ),
-        actions: [
-          IconButton(
-            icon: Icon(
-              isDark ? Icons.nightlight_round : Icons.wb_sunny,
-              color: headerTextColor,
-            ),
-            onPressed: () {
-              setState(() {
-                isDark = !isDark;
-              });
-            },
-          ),
-        ],
       ),
-      body: ListView.builder(
-        itemCount: sortedBrands.length,
-        itemBuilder: (context, index) {
-          final brand = sortedBrands[index];
-          final isFavorite = favoriteBrands.contains(brand['name']);
-          final logoPath = 'assets/${isDark ? 'dark_mode' : 'light_mode'}/${brand['logo']}';
+      actions: [
+        IconButton(
+          icon: Icon(
+            isDark ? Icons.nightlight_round : Icons.wb_sunny,
+            color: headerTextColor,
+          ),
+          onPressed: () {
+            setState(() => isDark = !isDark);
+          },
+        ),
+      ],
+    ),
+    body: AnimatedSwitcher(
+      duration: const Duration(milliseconds: 400),
+      child: !_favoritesLoaded
+          ? const SizedBox.shrink()//const Center(child: CircularProgressIndicator())
+          : ListView.builder(
+              key: const ValueKey('brandList'), // Ensures switcher animates
+              itemCount: displayBrands.length,
+              itemBuilder: (context, index) {
+                final brand = displayBrands[index];
+                final isFavorite = favoriteBrands.contains(brand['name']);
+                final logoPath = 'assets/${isDark ? 'dark_mode' : 'light_mode'}/${brand['logo']}';
 
-          return InkWell(
-            onTap: () {},
-            splashColor: dividerColor.withOpacity(0.2),
-            child: Column(
-              children: [
-                ListTile(
-                  leading: Image.asset(logoPath, width: 40, height: 40),
-                  title: Text(
-                    brand['name']!,
-                    style: TextStyle(
-                      color: brandTextColor,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  trailing: Material(
-                    color: Colors.transparent, // Needed for ripple to show over transparent backgrounds
-                    shape: const CircleBorder(),
-                    child: InkWell(
-                      customBorder: const CircleBorder(),
-                      onTap: () async {
-                        setState(() {
-                          _pressedBrand = brand['name'];
-                        });
+                return KeyedSubtree(
+                  key: ValueKey(brand['name']),
+                  child: InkWell(
+                    splashColor: dividerColor.withOpacity(0.2),
+                    onTap: () {},
+                    child: Column(
+                      children: [
+                        ListTile(
+                          leading: Image.asset(logoPath, width: 40, height: 40),
+                          title: Text(
+                            brand['name']!,
+                            style: TextStyle(
+                              color: brandTextColor,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          trailing: Material(
+                            color: Colors.transparent,
+                            shape: const CircleBorder(),
+                            child: InkWell(
+                              customBorder: const CircleBorder(),
+                              onTap: () async {
+                                setState(() {
+                                  _pressedBrand = brand['name'];
+                                });
 
-                        await Future.delayed(const Duration(milliseconds: 150));
+                                await Future.delayed(const Duration(milliseconds: 150));
 
-                        if (!mounted) return;
-                        setState(() {
-                          _pressedBrand = null;
-                          if (isFavorite) {
-                            favoriteBrands.remove(brand['name']);
-                          } else {
-                            favoriteBrands.add(brand['name']!);
-                          }
-                        });
+                                setState(() {
+                                  _pressedBrand = null;
+                                  if (isFavorite) {
+                                    favoriteBrands.remove(brand['name']);
+                                  } else {
+                                    favoriteBrands.add(brand['name']!);
+                                  }
+                                });
 
-                        await Future.delayed(const Duration(milliseconds: 300));
-                        if (!mounted) return;
-                        setState(() {}); // trigger rebuild & sorting
-                      },
-                      child: AnimatedScale(
-                        duration: const Duration(milliseconds: 150),
-                        scale: _pressedBrand == brand['name'] ? 1.2 : 1.0,
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 150),
-                          decoration: const BoxDecoration(shape: BoxShape.circle),
-                          child: Icon(
-                            isFavorite ? Icons.favorite : Icons.favorite_border,
-                            color: isFavorite ? brandTextColor : brandTextColor,
-                            size: 28,
+                                await _saveFavorites();
+                              },
+                              child: AnimatedScale(
+                                duration: const Duration(milliseconds: 150),
+                                scale: _pressedBrand == brand['name'] ? 1.2 : 1.0,
+                                child: Icon(
+                                  isFavorite ? Icons.favorite : Icons.favorite_border,
+                                  color: brandTextColor,
+                                  size: 28,
+                                ),
+                              ),
+                            ),
                           ),
                         ),
-                      ),
+                        Container(height: 1, color: dividerColor),
+                      ],
                     ),
                   ),
-                ),
-                Container(
-                  height: 1,
-                  color: dividerColor,
-                ),
-              ],
+                );
+              },
             ),
-          );
-        },
-      ),
-    );
-  }
+    ),
+  );
+}
 }
