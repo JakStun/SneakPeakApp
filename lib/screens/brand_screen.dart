@@ -93,54 +93,43 @@ class _BrandScreenState extends State<BrandScreen> {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  trailing: GestureDetector(
-                    onTapDown: (_) {
-                      setState(() {
-                        _pressedBrand = brand['name'];
-                      });
-                    },
-                    onTapUp: (_) async {
-                      if (!mounted) return;
-                      setState(() {
-                        _pressedBrand = null;
-                      });
+                  trailing: Material(
+                    color: Colors.transparent, // Needed for ripple to show over transparent backgrounds
+                    shape: const CircleBorder(),
+                    child: InkWell(
+                      customBorder: const CircleBorder(),
+                      onTap: () async {
+                        setState(() {
+                          _pressedBrand = brand['name'];
+                        });
 
-                      await Future.delayed(const Duration(milliseconds: 150));
+                        await Future.delayed(const Duration(milliseconds: 150));
 
-                      if (!mounted) return;  // Check again before calling setState
-                      setState(() {
-                        if (isFavorite) {
-                          favoriteBrands.remove(brand['name']);
-                        } else {
-                          favoriteBrands.add(brand['name']!);
-                        }
-                      });
+                        if (!mounted) return;
+                        setState(() {
+                          _pressedBrand = null;
+                          if (isFavorite) {
+                            favoriteBrands.remove(brand['name']);
+                          } else {
+                            favoriteBrands.add(brand['name']!);
+                          }
+                        });
 
-                      await Future.delayed(const Duration(seconds: 2));
-                      if (!mounted) return; // And again here before setState
-                      setState(() {}); // trigger rebuild & sorting
-                    },
-                    child: AnimatedScale(
-                      duration: const Duration(milliseconds: 150),
-                      scale: _pressedBrand == brand['name'] ? 1.2 : 1.0,
-                      child: AnimatedContainer(
+                        await Future.delayed(const Duration(milliseconds: 300));
+                        if (!mounted) return;
+                        setState(() {}); // trigger rebuild & sorting
+                      },
+                      child: AnimatedScale(
                         duration: const Duration(milliseconds: 150),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          boxShadow: _pressedBrand == brand['name']
-                              ? [
-                                  BoxShadow(
-                                    color: Colors.black26,
-                                    blurRadius: 6,
-                                    offset: Offset(0, 3),
-                                  )
-                                ]
-                              : [],
-                        ),
-                        child: Icon(
-                          isFavorite ? Icons.favorite : Icons.favorite_border,
-                          color: isFavorite ? Colors.red : brandTextColor,
-                          size: 28,
+                        scale: _pressedBrand == brand['name'] ? 1.2 : 1.0,
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 150),
+                          decoration: const BoxDecoration(shape: BoxShape.circle),
+                          child: Icon(
+                            isFavorite ? Icons.favorite : Icons.favorite_border,
+                            color: isFavorite ? brandTextColor : brandTextColor,
+                            size: 28,
+                          ),
                         ),
                       ),
                     ),
