@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'screens/home_screen.dart';
 import 'services/local_settings_service.dart';
+import 'package:flutter_animated_splash/flutter_animated_splash.dart';
 
 
 void main() async{
@@ -18,7 +19,15 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Camera App test 1',
-      home: const HomeScreen(),
+      home: AnimatedSplash(
+        type: Transition.fade,
+        curve: Curves.fastEaseInToSlowEaseOut,
+        backgroundColor: Colors.black,
+        durationInSeconds: 3,
+        navigator: HomeScreen(),
+        child: Image.asset('assets/logo_foreground.png')),
+        
+
       debugShowCheckedModeBanner: false,
     );
   }

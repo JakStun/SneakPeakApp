@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'brand_detail_screen.dart';
+
 class BrandScreen extends StatefulWidget {
   const BrandScreen({super.key});
 
@@ -110,7 +112,24 @@ Widget build(BuildContext context) {
                   key: ValueKey(brand['name']),
                   child: InkWell(
                     splashColor: dividerColor.withOpacity(0.2),
-                    onTap: () {},
+                    onTap: () async {
+                      await Future.delayed(const Duration(milliseconds: 300));
+                      if (!mounted) return;
+
+                      Navigator.push(
+                        context,
+                        PageRouteBuilder(
+                          transitionDuration: const Duration(milliseconds: 400),
+                          reverseTransitionDuration: const Duration(milliseconds: 400),
+                          pageBuilder: (context, animation, secondaryAnimation) {
+                            return FadeTransition(
+                              opacity: animation,
+                              child: BrandDetailScreen(brandName: brand['name']!),
+                            );
+                          },
+                        ),
+                      );
+                    },
                     child: Column(
                       children: [
                         ListTile(
@@ -120,6 +139,7 @@ Widget build(BuildContext context) {
                             style: TextStyle(
                               color: brandTextColor,
                               fontWeight: FontWeight.w600,
+                              fontSize: 20,
                             ),
                           ),
                           trailing: Material(
